@@ -1,0 +1,12 @@
+ul {
+  padding: 0;
+}
+
+.hide {
+  display:none;
+}
+
+li {
+  list-style: none;
+  padding: 0;
+}
