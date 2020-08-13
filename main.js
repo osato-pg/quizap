@@ -17,7 +17,7 @@ const quizInfo = {
   quizzes: [],
   answerChoice: [],
   realAnswer: '',
-  quizAgain: 0,
+  quizInstance: '',
 };
 
 class Quiz {
@@ -26,7 +26,10 @@ class Quiz {
   }
 
   makeQuiz(qCount) {
+    console.log(qCount);
     answerBtn.classList.remove('hide');
+    category.classList.remove('hide');
+    difficulty.classList.remove('hide');
     title.innerHTML = `問題${quizInfo.qCount + 1}`;
     category.innerHTML = `[ジャンル]${this.quiz[qCount].category}`;
     difficulty.innerHTML = `[難易度]${this.quiz[qCount].difficulty}`;
@@ -43,20 +46,18 @@ class Quiz {
 }
 
 const sendApiRequest = async () => {
+  startBtn.classList.add('hide');
+  title.innerHTML = '取得中';
+  question.innerHTML = '少々お待ちください';
   const result = await fetch(
     'https://opentdb.com/api.php?amount=10&type=multiple'
   );
   const data = await result.json();
-  startBtn.classList.add('hide');
-  title.innerHTML = '取得中';
-  question.innerHTML = '少々お待ちください';
   quizInfo.quizzes = data.results;
   // クイズインスタンスの作成
-  let quizInstance = `quizInstance${quizInfo.quizAgain}`
-  quizInstance = new Quiz(quizInfo.quizzes);
-  console.log(quizInstance);
-  nextQuiz(quizInstance);
-  makeAnswerKey(quizInstance);
+  quizInfo.quizInstance = new Quiz(quizInfo.quizzes);
+  console.log(quizInfo.quizInstance);
+  nextQuiz();
 };
 
 // スタートボタンをクリックしてクイズ開始
@@ -65,31 +66,31 @@ startBtn.addEventListener('click', () => {
 });
 
 // 次の問題の表示 or 結果を表示する。
-const nextQuiz = (quizInstance) => {
+const nextQuiz = () => {
   if (quizInfo.qCount < quizInfo.quizzes.length) {
-    quizInstance.makeQuiz(quizInfo.qCount);
+    quizInfo.quizInstance.makeQuiz(quizInfo.qCount);
   } else {
     quizResult();
   }
 };
 
 // 正解のボタンが押されると、correctが＋１される。そして次の問題へ
-function makeAnswerKey(quizInstance) {
+function makeAnswerKey() {
   const buttons = document.querySelectorAll('.answer');
   buttons.forEach((button) => {
     button.addEventListener('click', (e) => {
       const newId = e.target.id;
       if (quizInfo.realAnswer == newId) {
         quizInfo.correct++;
-        console.log(quizInfo.correct);
       }
     });
     button.addEventListener('click', () => {
       quizInfo.qCount++;
-      nextQuiz(quizInstance);
+      nextQuiz();
     });
   });
 }
+makeAnswerKey();
 
 // クイズの結果を表示
 function quizResult() {
@@ -111,7 +112,6 @@ function toHome() {
     againBtn.classList.add('hide');
     quizInfo.qCount = 0;
     quizInfo.correct = 0;
-    quizInfo.quizAgain++;
   });
 }
 toHome();
