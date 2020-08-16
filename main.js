@@ -5,121 +5,111 @@ const difficulty = document.getElementById('difficulty');
 const question = document.getElementById('question');
 const startBtn = document.getElementById('startBtn');
 const answerBtn = document.getElementById('answer-btn');
+const againBtn = document.getElementById('againBtn');
 const answer1 = document.getElementById('answer1');
 const answer2 = document.getElementById('answer2');
 const answer3 = document.getElementById('answer3');
 const answer4 = document.getElementById('answer4');
+const buttons = document.querySelectorAll('.answer');
 
-// クイズの基本情報
-const quizInfo = {
-  qCount: 0,
-  correct: 0,
-  quizzes: [],
-  answerChoice: [],
-  realAnswer: '',
-  quizInstance: '',
-};
+// 変数
+const gameURL = 'https://opentdb.com/api.php?amount=10&type=multiple';
+const totalQuizNum = 10;
+const answerChoiseNum = 4;
 
 class Quiz {
-  constructor(quiz) {
-    this.quiz = quiz;
+  constructor() {
+    this.answerChoice = [];
+    this.realAnswer = '';
+    this.quiz = [];
+    this.qCount = 0;
+    this.correct = 0;
   }
 
-  makeQuiz(qCount) {
-    console.log(qCount);
+  async getQuizData() {
+    startBtn.classList.add('hide');
+    title.textContent = '取得中';
+    question.textContent = '少々お待ちください';
+    const result = await fetch(gameURL);
+    const data = await result.json();
+    this.quiz = data.results;
+    this.next();
+  }
+
+  next() {
+    if (this.qCount < totalQuizNum) {
+      this.make();
+    } else {
+      this.result();
+    }
+  }
+
+  make() {
     answerBtn.classList.remove('hide');
     category.classList.remove('hide');
     difficulty.classList.remove('hide');
-    title.innerHTML = `問題${quizInfo.qCount + 1}`;
-    category.innerHTML = `[ジャンル]${this.quiz[qCount].category}`;
-    difficulty.innerHTML = `[難易度]${this.quiz[qCount].difficulty}`;
-    question.innerHTML = this.quiz[qCount].question;
-    const choice = random();
-    quizInfo.answerChoice = this.quiz[qCount].incorrect_answers;
-    quizInfo.answerChoice.splice(choice, 0, this.quiz[qCount].correct_answer);
-    quizInfo.realAnswer = `answer${choice + 1}`;
-    answer1.innerHTML = quizInfo.answerChoice[0];
-    answer2.innerHTML = quizInfo.answerChoice[1];
-    answer3.innerHTML = quizInfo.answerChoice[2];
-    answer4.innerHTML = quizInfo.answerChoice[3];
+    title.textContent = `問題${this.qCount + 1}`;
+    category.textContent = `[ジャンル]${this.quiz[this.qCount].category}`;
+    difficulty.textContent = `[難易度]${this.quiz[this.qCount].difficulty}`;
+    question.textContent = this.quiz[this.qCount].question;
+    const choice = this.answerShuffle();
+    this.answerChoice = this.quiz[this.qCount].incorrect_answers;
+    this.answerChoice.splice(choice, 0, this.quiz[this.qCount].correct_answer);
+    this.realAnswer = `answer${choice + 1}`;
+    answer1.textContent = this.answerChoice[0];
+    answer2.textContent = this.answerChoice[1];
+    answer3.textContent = this.answerChoice[2];
+    answer4.textContent = this.answerChoice[3];
   }
-}
 
-const sendApiRequest = async () => {
-  startBtn.classList.add('hide');
-  title.innerHTML = '取得中';
-  question.innerHTML = '少々お待ちください';
-  const result = await fetch(
-    'https://opentdb.com/api.php?amount=10&type=multiple'
-  );
-  const data = await result.json();
-  quizInfo.quizzes = data.results;
-  // クイズインスタンスの作成
-  quizInfo.quizInstance = new Quiz(quizInfo.quizzes);
-  console.log(quizInfo.quizInstance);
-  nextQuiz();
-};
-
-// スタートボタンをクリックしてクイズ開始
-startBtn.addEventListener('click', () => {
-  sendApiRequest();
-});
-
-// 次の問題の表示 or 結果を表示する。
-const nextQuiz = () => {
-  if (quizInfo.qCount < quizInfo.quizzes.length) {
-    quizInfo.quizInstance.makeQuiz(quizInfo.qCount);
-  } else {
-    quizResult();
+  answerShuffle() {
+    return Math.floor(Math.random() * answerChoiseNum);
   }
-};
 
-// 正解のボタンが押されると、correctが＋１される。そして次の問題へ
-function makeAnswerKey() {
-  const buttons = document.querySelectorAll('.answer');
-  buttons.forEach((button) => {
-    button.addEventListener('click', (e) => {
-      const newId = e.target.id;
-      if (quizInfo.realAnswer == newId) {
-        quizInfo.correct++;
-      }
+  judgeAnswer () {
+    buttons.forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const newId = e.target.id;
+        if (this.realAnswer === newId) {
+          this.correct++;
+        }
+      });
+      button.addEventListener('click', () => {
+        this.qCount++;
+        this.next();
+      });
     });
-    button.addEventListener('click', () => {
-      quizInfo.qCount++;
-      nextQuiz();
-    });
-  });
-}
-makeAnswerKey();
+  };
+  
+  result() {
+    title.textContent = `あなたの正解数は${this.correct}です！`;
+    question.textContent = '再度チャレンジしたい場合は以下をクリック！';
+    category.classList.add('hide');
+    difficulty.classList.add('hide');
+    answerBtn.classList.add('hide');
+    againBtn.classList.remove('hide');
+  }
 
-// クイズの結果を表示
-function quizResult() {
-  title.innerHTML = `あなたの正解数は${quizInfo.correct}です！`;
-  question.innerHTML = '再度チャレンジしたい場合は以下をクリック！';
-  category.classList.add('hide');
-  difficulty.classList.add('hide');
-  answerBtn.classList.add('hide');
-  againBtn.classList.remove('hide');
-}
-
-// ホーム画面へ戻る
-function toHome() {
-  const againBtn = document.getElementById('againBtn');
-  againBtn.addEventListener('click', () => {
-    title.innerHTML = 'ようこそ';
-    question.innerHTML = '以下のボタンをクリック';
+  gameAgain() {
+    title.textContent = 'ようこそ';
+    question.textContent = '以下のボタンをクリック';
     startBtn.classList.remove('hide');
     againBtn.classList.add('hide');
-    quizInfo.qCount = 0;
-    quizInfo.correct = 0;
-  });
+    quizInstance.qCount = 0;
+    quizInstance.correct = 0;
+  }
 }
-toHome();
 
-/*
-   quizオブジェクトの正解・不正解の解答をシャッフルする。
-  */
-function random() {
-  let correctNumber = Math.floor(Math.random() * 4);
-  return correctNumber;
-}
+// 処理記述
+const quizInstance = new Quiz();
+
+startBtn.addEventListener('click', () => {
+  quizInstance.getQuizData();
+});
+
+againBtn.addEventListener('click', () => {
+  quizInstance.gameAgain();
+});
+
+quizInstance.judgeAnswer();
+
