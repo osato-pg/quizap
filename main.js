@@ -15,7 +15,7 @@ const buttons = document.querySelectorAll('.answer');
 // 変数
 const gameURL = 'https://opentdb.com/api.php?amount=10&type=multiple';
 const totalQuizNum = 10;
-const answerChoiseNum = 4;
+const answerChoiceNum = 4;
 
 class Quiz {
   constructor() {
@@ -33,18 +33,18 @@ class Quiz {
     const result = await fetch(gameURL);
     const data = await result.json();
     this.quiz = data.results;
-    this.next();
+    this.getNextQuestion();
   }
 
-  next() {
+  getNextQuestion() {
     if (this.qCount < totalQuizNum) {
-      this.make();
+      this.makeQuiz();
     } else {
-      this.result();
+      this.resultQuizGame();
     }
   }
 
-  make() {
+  makeQuiz() {
     answerBtn.classList.remove('hide');
     category.classList.remove('hide');
     difficulty.classList.remove('hide');
@@ -52,7 +52,7 @@ class Quiz {
     category.textContent = `[ジャンル]${this.quiz[this.qCount].category}`;
     difficulty.textContent = `[難易度]${this.quiz[this.qCount].difficulty}`;
     question.textContent = this.quiz[this.qCount].question;
-    const choice = this.answerShuffle();
+    const choice = this.shuffleAnswer();
     this.answerChoice = this.quiz[this.qCount].incorrect_answers;
     this.answerChoice.splice(choice, 0, this.quiz[this.qCount].correct_answer);
     this.realAnswer = `answer${choice + 1}`;
@@ -62,8 +62,8 @@ class Quiz {
     answer4.textContent = this.answerChoice[3];
   }
 
-  answerShuffle() {
-    return Math.floor(Math.random() * answerChoiseNum);
+ shuffleAnswer() {
+    return Math.floor(Math.random() * answerChoiceNum);
   }
 
   judgeAnswer () {
@@ -76,12 +76,12 @@ class Quiz {
       });
       button.addEventListener('click', () => {
         this.qCount++;
-        this.next();
+        this.getNextQuestion();
       });
     });
   };
   
-  result() {
+  resultQuizGame() {
     title.textContent = `あなたの正解数は${this.correct}です！`;
     question.textContent = '再度チャレンジしたい場合は以下をクリック！';
     category.classList.add('hide');
