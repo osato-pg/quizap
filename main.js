@@ -61,12 +61,12 @@ class Quiz {
     answer3.textContent = this.answerChoice[2];
     answer4.textContent = this.answerChoice[3];
   }
-
- shuffleAnswer() {
+  
+  shuffleAnswer() {
     return Math.floor(Math.random() * answerChoiceNum);
   }
 
-  judgeAnswer () {
+  judgeAnswer() {
     buttons.forEach((button) => {
       button.addEventListener('click', (e) => {
         const newId = e.target.id;
@@ -79,8 +79,8 @@ class Quiz {
         this.getNextQuestion();
       });
     });
-  };
-  
+  }
+
   resultQuizGame() {
     title.textContent = `あなたの正解数は${this.correct}です！`;
     question.textContent = '再度チャレンジしたい場合は以下をクリック！';
@@ -112,4 +112,3 @@ againBtn.addEventListener('click', () => {
 });
 
 quizInstance.judgeAnswer();
-
